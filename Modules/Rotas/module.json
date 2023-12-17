@@ -1,0 +1,17 @@
+{
+    "name": "Rotas",
+    "alias": "Rotas",
+    "version": "2.5",
+    "description": "",
+    "keywords": [],
+    "priority": 80,
+    "providers": [
+        "Modules\\Rotas\\Providers\\RotasServiceProvider",
+        "Modules\\Rotas\\Providers\\ViewComposer",
+        "Modules\\Rotas\\Providers\\EventServiceProvider"
+
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}
