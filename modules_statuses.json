@@ -7,5 +7,6 @@
     "Lead": true,
     "Pos": true,
     "Stripe": true,
-    "Paypal": true
+    "Paypal": true,
+    "Rotas": true
 }
