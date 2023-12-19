@@ -241,12 +241,10 @@ class SetSalaryController extends Controller
     }
     public function employeeUpdateSalary(Request $request, $id)
     {
-        $validator = \Validator::make(
-            $request->all(), [
-                               'salary_type' => 'required',
-                               'salary' => 'required|numeric|min:0',
-                           ]
-        );
+        $validator = \Validator::make($request->all(), [
+                'salary_type' => 'required',
+                'salary' => 'required|numeric|min:0',
+            ]);
         if($validator->fails())
         {
             $messages = $validator->getMessageBag();
