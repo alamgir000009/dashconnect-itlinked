@@ -4,7 +4,7 @@
 /public/hot
 /public/storage
 /storage/*.key
-/storage/framework/sessions/*
+storage/framework/sessions/*
 /vendor
 /uploads
 .env
@@ -19,3 +19,4 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+storage/framework/sessions/2djR243FMsIuaDaHmFHsHcG2TOfp4fDIXbLqxP0f
