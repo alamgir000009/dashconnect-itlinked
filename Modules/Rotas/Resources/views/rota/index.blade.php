@@ -14,46 +14,43 @@
             <div class="card">
                 <div class="card-header card-body">
                     <div class="row ">
-                        <div class="form-group col-md-2" >
+                        <div class="form-group col-md-2">
                             {{ Form::label('branch_id', !empty(company_setting('hrm_branch_name')) ? company_setting('hrm_branch_name') : __('Branch'), ['class' => 'form-label']) }}<span
                                 class="text-danger pl-1">*</span>
                             {{ Form::select('branch_id', $branch, null, ['class' => 'form-control hrm_branch_name_id', 'required' => 'required', 'placeholder' => 'Select Branch']) }}
                         </div>
-                        <div class="form-group col-md-2" >
+                        <div class="form-group col-md-2">
                             {{ Form::label('department_id', !empty(company_setting('hrm_department_name')) ? company_setting('hrm_department_name') : __('Department'), ['class' => 'form-label rotas_location_change']) }}<span
                                 class="text-danger pl-1">*</span>
                             {{ Form::select('department_id', $department, null, ['class' => 'form-control hrm_department_name_id', 'required' => 'required', 'placeholder' => 'Select Department']) }}
                         </div>
-                        <div class="form-group col-md-2" >
+                        <div class="form-group col-md-2">
                             {{ Form::label('designation_id', !empty(company_setting('hrm_designation_name')) ? company_setting('hrm_designation_name') : __('Designation'), ['class' => 'form-label']) }}<span
                                 class="text-danger pl-1">*</span>
                             {{ Form::select('designation_id', [], null, ['class' => 'form-control rotas_location_change', 'id' => 'designation_id', 'required' => 'required', 'placeholder' => 'Select Designation']) }}
                         </div>
                         <div class="form-group col-md-3 my-auto">
-                            <div class="col-sm-12 col-md-auto  mx-2" >
-                                <i
-                                    class="fa fa-caret-left weak-prev-left weak-prev weak_go bg-primary text-white"></i>
+                            <div class="col-sm-12 col-md-auto  mx-2">
+                                <i class="fa fa-caret-left weak-prev-left weak-prev weak_go bg-primary text-white"></i>
                                 &nbsp;<span
                                     class="weak_go_html weak_go_html text-primary"><b>{{ $week_date[0] . ' - ' . $week_date[6] }}</b></span>&nbsp;
-                                <i
-                                    class="fa fa-caret-right weak-prev-left weak-left weak_go bg-primary text-white"></i>
+                                <i class="fa fa-caret-right weak-prev-left weak-left weak_go bg-primary text-white"></i>
                                 <input type="hidden" data-start="{{ $week_date['week_start'] }}"
                                     data-end="{{ $week_date['week_end'] }}" class="week_last_daye">
-                                <input type="hidden" value="{{ $temp_week }}"
-                                    data-created-by="{{ $created_by }}" class="week_add_sub">
+                                <input type="hidden" value="{{ $temp_week }}" data-created-by="{{ $created_by }}"
+                                    class="week_add_sub">
                                 <input type="hidden" value="{{ Auth::user()->mode }}" class="mode">
                             </div>
                         </div>
-                        <div class="form-group col-md-3 my-auto " >
+                        <div class="form-group col-md-3 my-auto ">
                             <div class="rotas_filter_main_div">
 
                                 <div class="btn-group card-option">
                                     @if (Gate::check('rota publish-week') || Gate::check('rota unpublish-week'))
-                                        <button type="button"
-                                            class=" btn btn-sm btn-primary btn-icon m-1 publish_shifs"
+                                        <button type="button" class=" btn btn-sm btn-primary btn-icon m-1 publish_shifs"
                                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <i class="feather icon-check" data-bs-toggle="tooltip"
-                                                data-bs-placement="top" title="{{ __('Publish Rotas') }}"></i>
+                                            <i class="feather icon-check" data-bs-toggle="tooltip" data-bs-placement="top"
+                                                title="{{ __('Publish Rotas') }}"></i>
                                         </button>
                                         <div class="dropdown-menu dropdown-menu-end" style="">
                                             @can('rota publish-week')
@@ -76,18 +73,17 @@
                                     @can('rota copy-week-shift')
                                         <button type="button" class="btn btn-sm btn-primary btn-icon m-1 publish_shifs"
                                             onclick="alert('{{ __('Drag and drop shift to other designation') }}')">
-                                            <i class="feather icon-copy" data-bs-toggle="tooltip"
-                                                data-bs-placement="top" title="{{ __(' Copy Shift ') }}"></i>
+                                            <i class="feather icon-copy" data-bs-toggle="tooltip" data-bs-placement="top"
+                                                title="{{ __(' Copy Shift ') }}"></i>
                                         </button>
                                     @endcan
                                 </div>
 
                                 <div class="btn-group card-option">
                                     @can('rota shift-copy')
-                                        <button type="button"
-                                            class="btn btn-sm btn-primary btn-icon m-1 Copy_Week_Shift">
-                                            <i class="feather icon-move" data-bs-toggle="tooltip"
-                                                data-bs-placement="top" title="{{ __(' Copy rotas next week ') }}"></i>
+                                        <button type="button" class="btn btn-sm btn-primary btn-icon m-1 Copy_Week_Shift">
+                                            <i class="feather icon-move" data-bs-toggle="tooltip" data-bs-placement="top"
+                                                title="{{ __(' Copy rotas next week ') }}"></i>
                                         </button>
                                     @endcan
                                 </div>
@@ -101,17 +97,20 @@
                                 </div> --}}
 
                                 <div class="btn-group card-option rotas_filter">
-                                    @if (Gate::check('rota hide/show day off') || Gate::check('rota hide/show leave') || Gate::check('rota hide/show availability') || Gate::check('rota clear week') || Gate::check('rota day off'))
+                                    @if (Gate::check('rota hide/show day off') ||
+                                            Gate::check('rota hide/show leave') ||
+                                            Gate::check('rota hide/show availability') ||
+                                            Gate::check('rota clear week') ||
+                                            Gate::check('rota day off'))
                                         <button type="button" class="btn btn-sm btn-primary btn-icon m-1"
                                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <i class="feather icon-filter" data-bs-toggle="tooltip"
-                                                data-bs-placement="top" title="{{ __('Additional Settings') }}"></i>
+                                            <i class="feather icon-filter" data-bs-toggle="tooltip" data-bs-placement="top"
+                                                title="{{ __('Additional Settings') }}"></i>
                                         </button>
                                     @endif
                                     <div class="dropdown-menu dropdown-menu-end" style="">
                                         @can('rota hide/show day off')
-                                            <a href="#"
-                                                class="dropdown-item {{ $day_off == 'hide' ? 'hide_rss' : '' }}"
+                                            <a href="#" class="dropdown-item {{ $day_off == 'hide' ? 'hide_rss' : '' }}"
                                                 id="hidedayoff">
                                                 <span class="span_hide"
                                                     style="{{ $day_off == 'show' ? 'display: none;' : '' }}">{{ __('Show') }}</span>
@@ -163,8 +162,8 @@
                                     @can('rota send mail')
                                         <button type="button" class="btn btn-sm btn-primary btn-icon m-1"
                                             id='send_email_rotas'>
-                                            <i class="feather icon-mail" data-bs-toggle="tooltip"
-                                                data-bs-placement="top" title="{{ __('Send rotas via email') }}"></i>
+                                            <i class="feather icon-mail" data-bs-toggle="tooltip" data-bs-placement="top"
+                                                title="{{ __('Send rotas via email') }}"></i>
                                         </button>
                                     @endcan
                                 </div>
@@ -175,12 +174,11 @@
                                         data-url="{{ route('rotas.print_rotas_popup') }}">
                                     </button>
                                     @can('rota print')
-                                        <button type="button" class="btn btn-sm btn-primary btn-icon m-1"
-                                            id="print_rotas" data-urls="{{ route('rotas.print_rotas_popup') }}">
+                                        <button type="button" class="btn btn-sm btn-primary btn-icon m-1" id="print_rotas"
+                                            data-urls="{{ route('rotas.print_rotas_popup') }}">
                                             <i class="feather icon-printer"
-                                                data-urls="{{ route('rotas.print_rotas_popup') }}"
-                                                data-bs-toggle="tooltip" data-bs-placement="top"
-                                                title="{{ __('Print rotas') }}"></i>
+                                                data-urls="{{ route('rotas.print_rotas_popup') }}" data-bs-toggle="tooltip"
+                                                data-bs-placement="top" title="{{ __('Print rotas') }}"></i>
                                         </button>
                                     @endcan
 
@@ -191,8 +189,8 @@
                                         <button type="button" data-url2="{{ route('rotas.share_popup') }}"
                                             class="btn btn-sm btn-primary btn-icon m-1 share_rotas_cls" data-size="md"
                                             data-ajax-rota="false" data-title="{{ __('Share rotas') }}">
-                                            <i class="feather icon-share-2" data-bs-toggle="tooltip"
-                                                data-bs-placement="top" title="{{ __('Share rotas') }}"></i>
+                                            <i class="feather icon-share-2" data-bs-toggle="tooltip" data-bs-placement="top"
+                                                title="{{ __('Share rotas') }}"></i>
                                         </button>
                                     @endcan
 
@@ -220,7 +218,7 @@
             <div class="mt-4">
                 <div class="card">
                     <div class="card-wrapper rotas-timesheet overflow-auto" id="rotas-timesheet">
-                        <table class="table work_sheet_table1">
+                        {{-- <table class="table work_sheet_table1">
                             <thead>
                                 <tr class="text-center work_sheet_table">
                                     <th><span>{{ __(date('D', strtotime($week_date[0]))) }}</span><br><span>{{ $week_date[0] }}</span>
@@ -262,7 +260,92 @@
                                     {!! \Modules\Rotas\Entities\Rota::getCompanyWeeklyUserSalary(0, $created_by, $emp->designation_id, 0) !!}
                                 </tfoot>
                             @endif
-                        </table>
+                        </table> --}}
+                        <hr>
+                        <p>
+                            <a class="btn btn-primary" data-bs-toggle="collapse" href="#comparisonInsights"
+                                role="button" aria-expanded="false" aria-controls="comparisonInsights">INSIGHTS</a>
+                                <span>...</span>
+                        </p>
+                        <div class="row">
+                            <div class="col">
+                                <div class="collapse multi-collapse" id="comparisonInsights">
+                                    <div class="card card-body">
+                                        <table class="table table-striped">
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex">
+                                                            <div class="col-md-6">
+                                                                SALES TARGET
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                Rs. 44444
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span contenteditable> 0 Rs </span>
+                                                    </td>
+                                                    <td>
+                                                        <span contenteditable> 0 Rs </span>
+                                                    </td>
+                                                    <td>
+                                                        <span contenteditable> 0 Rs </span>
+                                                    </td>
+                                                    <td>
+                                                        <span contenteditable> 0 Rs </span>
+                                                    </td>
+                                                    <td>
+                                                        <span contenteditable> 0 Rs </span>
+                                                    </td>
+                                                    <td>
+                                                        <span contenteditable> 0 Rs </span>
+                                                    </td>
+                                                    <td>
+                                                        <span contenteditable> 0 Rs </span>
+                                                    </td>
+                                                </tr>
+
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex">
+                                                            <div class="col-md-6">
+                                                                LABOR COST 
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                44%
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span contenteditable="">10%</span>
+                                                    </td>
+                                                    <td>
+                                                        <span contenteditable="">10%</span>
+                                                    </td>
+                                                    <td>
+                                                        <span contenteditable="">10%</span>
+                                                    </td>
+                                                    <td>
+                                                        <span contenteditable="">10%</span>
+                                                    </td>
+                                                    <td>
+                                                        <span contenteditable="">10%</span>
+                                                    </td>
+                                                    <td>
+                                                        <span contenteditable="">10%</span>
+                                                    </td>
+                                                    <td>
+                                                        <span contenteditable="">10%</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -891,7 +974,7 @@
                 var end_time = form.find('input[name="end_time"]').val();
                 var break_time = form.find('input[name="break_time"]').val();
                 var synchronize_type = ($("input[name=synchronize_type]").is(':checked')) ? $(
-                "input[name=synchronize_type]").val() : "";
+                    "input[name=synchronize_type]").val() : "";
                 var note = form.find('textarea[name="note"]').val();
                 var token = $('meta[name="csrf-token"]').attr('content');
 
@@ -1133,7 +1216,8 @@
                                     success: function(data) {
                                         if (data['status'] == 'success') {
                                             ui.helper.html(data['shift']);
-                                            ui.helper.attr('data-rotas-id', data['insert_id']);
+                                            ui.helper.attr('data-rotas-id', data[
+                                                'insert_id']);
                                             toastrs('Success', data['msg'], 'success');
                                         } else {
                                             ui.helper.remove();
@@ -1145,7 +1229,8 @@
 
                                         $('[data-toggle="tooltip"]').tooltip();
 
-                                        if ($('.add_remove_dayeoff').css('display') != 'none') {
+                                        if ($('.add_remove_dayeoff').css('display') !=
+                                            'none') {
                                             $('.day_off_leave').show();
                                         } else {
                                             $('.day_off_leave').hide();
