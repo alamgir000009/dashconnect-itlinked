@@ -60,6 +60,11 @@ Route::group(['middleware' => 'PlanModuleCheck:Rotas'], function () {
     Route::get('/rota/shift_disable_response/{id}', ['as' => 'rotas.shift.response', 'uses' => 'RotaController@shift_disable_response'])->middleware(['auth']);
 
     Route::resource('/rota', 'RotaController')->middleware(['auth']);
+
+    // Custom work
+    Route::post('rotas/target_sale/update', 'RotaSaleTargetController@update')->name('rotas.target-sale.update')->middleware(['auth']);
+    
+    
     Route::post('rotas/setting/store', 'RotaController@setting')->name('rotas.setting.store')->middleware(['auth']);
     Route::resource('/availabilitie', 'AvailabilityController')->middleware(['auth']);
 

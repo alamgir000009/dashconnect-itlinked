@@ -27,7 +27,7 @@
         <div class="col-md-12">
             <div class="form-group">
                 {{ Form::label('salary', __('Salary'), ['class' => 'form-label']) }}
-                {{ Form::number('salary', null, ['class' => 'form-control ', 'required' => 'required', 'step' => '0.09']) }}
+                {{ Form::number('salary', null, ['class' => 'form-control ', 'required' => 'required', 'step' => '0.01']) }}
             </div>
         </div>
     </div>

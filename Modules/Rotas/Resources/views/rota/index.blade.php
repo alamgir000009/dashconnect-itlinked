@@ -218,7 +218,7 @@
             <div class="mt-4">
                 <div class="card">
                     <div class="card-wrapper rotas-timesheet overflow-auto" id="rotas-timesheet">
-                        {{-- <table class="table work_sheet_table1">
+                        <table class="table work_sheet_table1">
                             <thead>
                                 <tr class="text-center work_sheet_table">
                                     <th><span>{{ __(date('D', strtotime($week_date[0]))) }}</span><br><span>{{ $week_date[0] }}</span>
@@ -260,12 +260,15 @@
                                     {!! \Modules\Rotas\Entities\Rota::getCompanyWeeklyUserSalary(0, $created_by, $emp->designation_id, 0) !!}
                                 </tfoot>
                             @endif
-                        </table> --}}
+                        </table>
                         <hr>
                         <p>
-                            <a class="btn btn-primary" data-bs-toggle="collapse" href="#comparisonInsights"
-                                role="button" aria-expanded="false" aria-controls="comparisonInsights">INSIGHTS</a>
-                                <span>...</span>
+                            <a class="cursor-pointer ms-4" data-bs-toggle="collapse" href="#comparisonInsights"
+                                aria-expanded="false" aria-controls="comparisonInsights">
+                                {{-- <i class="fa fa-angle-double-down"></i>  --}}
+                                <i class="fa fa-angle-down"></i>
+                                INSIGHTS</a>
+                            <span>...</span>
                         </p>
                         <div class="row">
                             <div class="col">
@@ -280,38 +283,26 @@
                                                                 SALES TARGET
                                                             </div>
                                                             <div class="col-md-6">
-                                                                Rs. 44444
+                                                                {{ currency_format_with_sym($totalTargetSale) }}
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td>
-                                                        <span contenteditable> 0 Rs </span>
-                                                    </td>
-                                                    <td>
-                                                        <span contenteditable> 0 Rs </span>
-                                                    </td>
-                                                    <td>
-                                                        <span contenteditable> 0 Rs </span>
-                                                    </td>
-                                                    <td>
-                                                        <span contenteditable> 0 Rs </span>
-                                                    </td>
-                                                    <td>
-                                                        <span contenteditable> 0 Rs </span>
-                                                    </td>
-                                                    <td>
-                                                        <span contenteditable> 0 Rs </span>
-                                                    </td>
-                                                    <td>
-                                                        <span contenteditable> 0 Rs </span>
-                                                    </td>
+
+
+                                                    @foreach ($totalTargetSales as $day)
+                                                        <td>
+                                                            <span class="change-target" contenteditable
+                                                                id="{{ $day['date'] }}">{{ $day['target'] }}</span>
+                                                        </td>
+                                                    @endforeach
+
                                                 </tr>
 
                                                 <tr>
                                                     <td>
                                                         <div class="d-flex">
                                                             <div class="col-md-6">
-                                                                LABOR COST 
+                                                                LABOR COST
                                                             </div>
                                                             <div class="col-md-6">
                                                                 44%
@@ -362,7 +353,6 @@
     {{-- {{-- <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script> --}}
     <script src="https://app.thestaffweb.com/js/jquery-ui.min.js"></script>
 
-
     <script>
         $.ajaxSetup({
             headers: {
@@ -372,6 +362,32 @@
             complete: function() {
                 $('[data-toggle="tooltip"]').tooltip();
             },
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            $('.change-target').blur(function() {
+                // Get the updated content and the date
+                var updatedTarget = $(this).text().trim();
+                var date = $(this).attr('id');
+
+                // Send an AJAX request to update the sales data
+                $.ajax({
+                    url: '{{ route("rotas.target-sale.update") }}', // Update with your Laravel route
+                    method: 'POST',
+                    data: {
+                        date: date,
+                        target: updatedTarget
+                    },
+                    success: function(response) {
+                        console.log('Sales data updated successfully!');
+                    },
+                    error: function(error) {
+                        console.error('Error updating sales data:', error);
+                    }
+                });
+            });
         });
     </script>
 
