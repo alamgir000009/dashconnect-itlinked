@@ -12,7 +12,6 @@ class RotaSaleTargetController extends Controller
 
     public function update(Request $request)
     {
-
         $request->validate([
             'date' => 'required|date',
             'target' => 'required|numeric',
@@ -24,8 +23,17 @@ class RotaSaleTargetController extends Controller
 
         // Find or create a TargetSale based on the given date
         TargetSale::updateOrCreate(
-            ['date' => $date],
-            ['target' => $target]
+            [
+                'date' => $date,
+                'create_by' => creatorId(),
+                'workspace' => getActiveWorkSpace(),
+            ],
+            [
+                'user_id' => auth()->user()->id,
+                'target' => $target,
+                'workspace' => getActiveWorkSpace(),
+                'create_by' => creatorId(),
+            ]
         );
 
         $date_formate = Rota::CompanyDateFormat('d M Y');
@@ -37,7 +45,7 @@ class RotaSaleTargetController extends Controller
         $week_date['week_end'] = date('Y-m-d', strtotime($week_date[6]));
 
         $totalTargetSale = TargetSale::whereDate("date", ">=", $week_date['week_start'])
-        ->whereDate("date", "<=", $week_date['week_end'])->sum('target');
+            ->whereDate("date", "<=", $week_date['week_end'])->sum('target');
 
         return response()->json([
             'status' => true,
