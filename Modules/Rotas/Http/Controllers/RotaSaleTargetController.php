@@ -23,7 +23,7 @@ class RotaSaleTargetController extends Controller
         $target = $request->input('target');
 
         // Find or create a TargetSale based on the given date
-        $targetSale = TargetSale::updateOrCreate(
+        TargetSale::updateOrCreate(
             ['date' => $date],
             ['target' => $target]
         );
@@ -33,15 +33,16 @@ class RotaSaleTargetController extends Controller
         $start_day = (!empty(company_setting('company_week_start'))) ? company_setting('company_week_start') : 'monday';
         $week_date = Rota::getWeekArray($date_formate, $week, $start_day);
 
-        // dd($week_date);
+        $week_date['week_start'] = date('Y-m-d', strtotime($week_date[0]));
+        $week_date['week_end'] = date('Y-m-d', strtotime($week_date[6]));
 
-        // $totalTargetSale = TargetSale::whereDate("date", ">=", $week_date['week_start'])
-            // ->whereDate("date", "<=", $week_date['week_end'])->sum('target');
+        $totalTargetSale = TargetSale::whereDate("date", ">=", $week_date['week_start'])
+        ->whereDate("date", "<=", $week_date['week_end'])->sum('target');
 
         return response()->json([
             'status' => true,
-            // 'totalTargetSale' => currency_format_with_sym($totalTargetSale),
-            'message' => 'Sales data updated successfully']);
+            'totalTargetSale' => currency_format_with_sym($totalTargetSale),
+            'message' => 'Target sale updated successfully']);
 
         // if (Auth::user()->can('rota edit')) {
 

@@ -69,6 +69,20 @@ function toastrs(text,message,type) {
     $('#liveToast .toast-body').html(message);
 }
 
+function toastrsCustom(message,type) {
+    var f = document.getElementById('liveToast');
+    var a = new bootstrap.Toast(f).show();
+    if (type == 'success')
+    {
+        $('#liveToast').removeClass('bg-danger');
+        $('#liveToast').addClass('bg-primary');
+    } else {
+        $('#liveToast').removeClass('bg-primary');
+        $('#liveToast').addClass('bg-danger');
+    }
+    $('#liveToast .toast-body').html(message);
+}
+
 
 $(document).on('click', 'a[data-ajax-popup="true"], button[data-ajax-popup="true"], div[data-ajax-popup="true"]', function () {
     var title = $(this).data('title');

@@ -7,6 +7,14 @@
 @endsection
 @push('css')
     <link rel="stylesheet" href="{{ asset('Modules/Rotas/Resources/assets/css/custom.css') }}">
+    <style>
+        .change-target:focus {
+            padding: 10px;
+            background: #f1e9e9;
+            border: 3px solid #16d3e4;
+            border-radius: 5px;
+        }
+    </style>
 @endpush
 @section('content')
     <div class="row">
@@ -283,7 +291,8 @@
                                                                 SALES TARGET
                                                             </div>
                                                             <div class="col-md-6">
-                                                                {{ currency_format_with_sym($totalTargetSale) }}
+                                                                <span
+                                                                    id="total_target_sale">{{ currency_format_with_sym($totalTargetSale) }}</span>
                                                             </div>
                                                         </div>
                                                     </td>
@@ -292,7 +301,8 @@
                                                     @foreach ($totalTargetSales as $day)
                                                         <td>
                                                             <span class="change-target" contenteditable
-                                                                id="{{ $day['date'] }}">{{ $day['target'] }}</span>
+                                                                id="{{ $day['date'] }}"
+                                                                data-oldvalue="{{ $day['target'] }}">{{ $day['target'] }}</span>
                                                         </td>
                                                     @endforeach
 
@@ -366,28 +376,46 @@
     </script>
 
     <script>
-        $(document).ready(function() {
-            $('.change-target').blur(function() {
-                // Get the updated content and the date
-                var updatedTarget = $(this).text().trim();
-                var date = $(this).attr('id');
+        $('.change-target').on('keypress', function(event) {
+            if (event.which === 13) {
+                // Prevent the default Enter key behavior
+                event.preventDefault();
+                return false;
+            }
+        });
 
+        $(document).on('blur', '.change-target', function() {
+            // Get the updated content and the date
+            var updatedTarget = $(this).text().trim();
+            var date = $(this).attr('id');
+
+            var oldTarget = $(this).data('oldvalue');
+
+            // Check if the value has changed
+            if (updatedTarget === oldTarget) {
+                return; // Exit the event handler if the value hasn't changed
+            } else if (!date || date.match(/^\d{4}-\d{2}-\d{2}$/) === null) {
+                toastrsCustom('{{ __("Enter a valid date.") }}', 'error');
+            } else if (!updatedTarget || isNaN(updatedTarget)) {
+                toastrsCustom('{{ __("Enter a valid numeric target.") }}', 'error');
+                $(this).html(oldTarget);
+            } else {
                 // Send an AJAX request to update the sales data
                 $.ajax({
-                    url: '{{ route("rotas.target-sale.update") }}', // Update with your Laravel route
+                    url: '{{ route('rotas.target-sale.update') }}', // Update with your Laravel route
                     method: 'POST',
                     data: {
                         date: date,
                         target: updatedTarget
                     },
                     success: function(response) {
-                        console.log('Sales data updated successfully!');
-                    },
-                    error: function(error) {
-                        console.error('Error updating sales data:', error);
+                        if (response.status) {
+                            $("#total_target_sale").html(response.totalTargetSale);
+                            toastrsCustom(response.message, 'success');
+                        }
                     }
                 });
-            });
+            }
         });
     </script>
 
