@@ -8,11 +8,16 @@
 @push('css')
     <link rel="stylesheet" href="{{ asset('Modules/Rotas/Resources/assets/css/custom.css') }}">
     <style>
+        .change-labor-target:focus,
         .change-target:focus {
-            padding: 10px;
+            padding: 10px 30px !important;
             background: #f1e9e9;
             border: 3px solid #16d3e4;
             border-radius: 5px;
+        }
+        .change-labor-target,
+        .change-target {
+            cursor: pointer !important;
         }
     </style>
 @endpush
@@ -300,7 +305,7 @@
 
                                                     @foreach ($totalTargetSales as $day)
                                                         <td>
-                                                            <span class="change-target" contenteditable
+                                                            <span title="Click to update the sale target" class="change-target" contenteditable
                                                                 id="{{ $day['date'] }}"
                                                                 data-oldvalue="{{ $day['target'] }}">{{ $day['target'] }}</span>
                                                         </td>
@@ -315,31 +320,19 @@
                                                                 LABOR COST
                                                             </div>
                                                             <div class="col-md-6">
-                                                                44%
+                                                                <span id="total_labor_percentage">
+                                                                    {{ $totalLaborTargetAvg ? $totalLaborTargetAvg . '%' : '' }}
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td>
-                                                        <span contenteditable="">10%</span>
-                                                    </td>
-                                                    <td>
-                                                        <span contenteditable="">10%</span>
-                                                    </td>
-                                                    <td>
-                                                        <span contenteditable="">10%</span>
-                                                    </td>
-                                                    <td>
-                                                        <span contenteditable="">10%</span>
-                                                    </td>
-                                                    <td>
-                                                        <span contenteditable="">10%</span>
-                                                    </td>
-                                                    <td>
-                                                        <span contenteditable="">10%</span>
-                                                    </td>
-                                                    <td>
-                                                        <span contenteditable="">10%</span>
-                                                    </td>
+                                                    @foreach ($totalLaborTargets as $day)
+                                                        <td>
+                                                            <span title="Click to update the labor target" class="change-labor-target" contenteditable
+                                                                id="{{ $day['date'] }}"
+                                                                data-oldvalue="{{ $day['target'] }}">{{ $day['target']??'' }}</span>%
+                                                        </td>
+                                                    @endforeach
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -376,7 +369,7 @@
     </script>
 
     <script>
-        $('.change-target').on('keypress', function(event) {
+        $('.change-target, .change-labor-target').on('keypress', function(event) {
             if (event.which === 13) {
                 // Prevent the default Enter key behavior
                 event.preventDefault();
@@ -395,9 +388,9 @@
             if (updatedTarget === oldTarget) {
                 return; // Exit the event handler if the value hasn't changed
             } else if (!date || date.match(/^\d{4}-\d{2}-\d{2}$/) === null) {
-                toastrsCustom('{{ __("Enter a valid date.") }}', 'error');
+                toastrsCustom('{{ __('Something went wrong.') }}', 'error');
             } else if (!updatedTarget || isNaN(updatedTarget)) {
-                toastrsCustom('{{ __("Enter a valid numeric target.") }}', 'error');
+                toastrsCustom('{{ __('Enter a valid numeric target.') }}', 'error');
                 $(this).html(oldTarget);
             } else {
                 // Send an AJAX request to update the sales data
@@ -412,6 +405,44 @@
                         if (response.status) {
                             $("#total_target_sale").html(response.totalTargetSale);
                             toastrsCustom(response.message, 'success');
+                        }
+                    }
+                });
+            }
+        });
+
+        $(document).on('blur', '.change-labor-target', function() {
+            // Get the updated content and the date
+            var updatedTarget = $(this).text().trim();
+            var date = $(this).attr('id');
+
+            var oldTarget = $(this).data('oldvalue');
+
+            // Check if the value has changed
+            if (updatedTarget === oldTarget) {
+                return; // Exit the event handler if the value hasn't changed
+            } else if (!date || date.match(/^\d{4}-\d{2}-\d{2}$/) === null) {
+                toastrsCustom('{{ __('Enter a valid date.') }}', 'error');
+            } else if (updatedTarget !== "" && (isNaN(updatedTarget) || !$.isNumeric(updatedTarget))) {
+                toastrsCustom('{{ __('Enter a valid numeric target.') }}', 'error');
+                $(this).html(oldTarget);
+            } else {
+
+                // Send an AJAX request to update the labor cost data
+                $.ajax({
+                    url: '{{ route('rotas.labor-target.update') }}', // Update with your Laravel route
+                    method: 'POST',
+                    data: {
+                        date: date,
+                        target: updatedTarget
+                    },
+                    success: function(response) {
+                        if (response.status) {
+                            $("#total_labor_percentage").html(response.totalLaborPercentage);
+                            toastrsCustom(response.message, 'success');
+                        }
+                        if (updatedTarget > 100) {
+                            $(this).html(100);
                         }
                     }
                 });

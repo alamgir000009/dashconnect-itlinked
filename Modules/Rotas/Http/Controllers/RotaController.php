@@ -3,26 +3,27 @@
 namespace Modules\Rotas\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Mail;
-use Modules\Rotas\Entities\Branch;
-use Modules\Rotas\Entities\Department;
-use Modules\Rotas\Entities\Designation;
-use Modules\Rotas\Entities\Employee;
 use Modules\Rotas\Entities\Rota;
-use Modules\Rotas\Entities\TargetSale;
+use Illuminate\Routing\Controller;
+use Modules\Rotas\Entities\Branch;
 use Modules\Rotas\Events\AddDayoff;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Modules\Rotas\Entities\Employee;
 use Modules\Rotas\Events\CreateRota;
-use Modules\Rotas\Events\DestroyRota;
-use Modules\Rotas\Events\SendRotasViaEmail;
 use Modules\Rotas\Events\UpdateRota;
-use Modules\Rotas\Events\UpdateWorkSchedule;
-use Modules\Rotas\Http\Mail\SendRotas;
 use Rawilk\Settings\Support\Context;
+use Illuminate\Support\Facades\Crypt;
+use Modules\Rotas\Events\DestroyRota;
+use Modules\Rotas\Entities\Department;
+use Modules\Rotas\Entities\TargetSale;
+use Modules\Rotas\Http\Mail\SendRotas;
+use Modules\Rotas\Entities\Designation;
+use Modules\Rotas\Entities\LaborTarget;
+use Modules\Rotas\Events\SendRotasViaEmail;
+use Illuminate\Contracts\Support\Renderable;
+use Modules\Rotas\Events\UpdateWorkSchedule;
 
 class RotaController extends Controller
 {
@@ -93,8 +94,12 @@ class RotaController extends Controller
             $week_date['week_end'] = date('Y-m-d', strtotime($week_date[6]));
 
             // Total Sale Target for the week
-            $totalTargetSale = TargetSale::whereDate("date" , ">=", $week_date['week_start'])
-            ->whereDate("date" , "<=", $week_date['week_end'])->sum('target');
+            $totalTargetSale = TargetSale::whereDate("date", ">=", $week_date['week_start'])
+                ->whereDate("date", "<=", $week_date['week_end'])->sum('target');
+            
+            // Labor cost percentage of the week
+            $totalLaborTargetAvg = intval(LaborTarget::whereDate("date", ">=", $week_date['week_start'])
+                ->whereDate("date", "<=", $week_date['week_end'])->avg('target'));
 
             // Step 1: Generate an array of all days in the current week
             $weekDays = [];
@@ -103,24 +108,24 @@ class RotaController extends Controller
                 $weekDays[] = $startDate->clone()->addDays($i)->toDateString();
             }
 
-            // Step 2: Fetch the TargetSale records for the existing entries within the current week
+            // Step 2: Fetch the TargetSale/LaborTarget records for the existing entries within the current week
             $targetSales = TargetSale::whereDate('date', '>=', $week_date['week_start'])
                 ->whereDate('date', '<=', $week_date['week_end'])
-                ->get()
-                ->keyBy('date')
-                ->toArray();
+                ->get()->keyBy('date')->toArray();
+
+            $laborTargets = LaborTarget::whereDate('date', '>=', $week_date['week_start'])
+                ->whereDate('date', '<=', $week_date['week_end'])
+                ->get()->keyBy('date')->toArray();
 
             // Step 3: Merge the existing records with the complete array of days
             $totalTargetSales = [];
+            $totalLaborTargets = [];
             foreach ($weekDays as $day) {
-                $totalTargetSales[] = $targetSales[$day] ?? ['target' => 0, 'date' => $day];
+                $totalTargetSales[]  = $targetSales[$day] ?? ['target' => '', 'date' => $day];
+                $totalLaborTargets[] = $laborTargets[$day] ?? ['target' => '', 'date' => $day];
             }
 
-            // dd($totalTargetSales);
-
-            // Now $totalTargetSales contains the sales data for each day of the week, with empty entries for missing days
-
-            return view('rotas::rota.index', compact('totalTargetSales', 'totalTargetSale', 'week_date', 'employees', 'temp_week', 'branch', 'department', 'designation', 'first_location', 'created_by', 'day_off', 'leave_display', 'availability_display'));
+            return view('rotas::rota.index', compact('totalLaborTargetAvg', 'totalLaborTargets', 'totalTargetSales', 'totalTargetSale', 'week_date', 'employees', 'temp_week', 'branch', 'department', 'designation', 'first_location', 'created_by', 'day_off', 'leave_display', 'availability_display'));
         }
     }
 

@@ -63,6 +63,7 @@ Route::group(['middleware' => 'PlanModuleCheck:Rotas'], function () {
 
     // Custom work
     Route::post('rotas/target_sale/update', 'RotaSaleTargetController@update')->name('rotas.target-sale.update')->middleware(['auth']);
+    Route::post('rotas/labor_target/update', 'RotaLaborTargetController@update')->name('rotas.labor-target.update')->middleware(['auth']);
     
     
     Route::post('rotas/setting/store', 'RotaController@setting')->name('rotas.setting.store')->middleware(['auth']);
