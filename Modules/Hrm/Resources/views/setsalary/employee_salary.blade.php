@@ -35,7 +35,10 @@
                         <div class="project-info d-flex text-sm">
                             <div class="project-info-inner mr-3 col-6">
                                 <b class="m-0"> {{ __('Payslip Type') }} </b>
-                                <div class="project-amnt pt-1">{{ !empty($employee->salary_type()) ?  ($employee->salary_type()) ?? '' : '' }}</div>
+                                {{-- <div class="project-amnt pt-1">{{ !empty($employee->salary_type()) ?  ($employee->salary_type()) ?? '' : '' }}</div> --}}
+                                <div class="project-amnt pt-1">
+                                    {{ $employee->salary_type ? ($employee->salary_type == 1 ? 'Per Month' : ($employee->salary_type == 2 ? 'Per Week' : ($employee->salary_type == 3 ? 'Per Hour' : ''))) : '' }}
+                                </div>
                             </div>
                             <div class="project-info-inner mr-3 col-6">
                                 <b class="m-0"> {{ __('Salary') }} </b>

@@ -121,7 +121,7 @@ class RotaController extends Controller
             $totalTargetSales = [];
             $totalLaborTargets = [];
             foreach ($weekDays as $day) {
-                $totalTargetSales[]  = $targetSales[$day] ?? ['target' => '', 'date' => $day];
+                $totalTargetSales[]  = $targetSales[$day] ?? ['target' => 0, 'date' => $day];
                 $totalLaborTargets[] = $laborTargets[$day] ?? ['target' => '', 'date' => $day];
             }
 

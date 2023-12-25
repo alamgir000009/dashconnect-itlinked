@@ -6,20 +6,21 @@
                 {{ Form::label('salary_type', __('Payslip Type'), ['class' => 'form-label']) }}
                 {{ Form::select('salary_type', $payslip_type, null, ['class' => 'form-control ', 'required' => 'required', 'placeholder' => 'Select Payslip Type']) }}
             </div> --}}
+            {{ $employee->salary_type === 3 ? 'checked' : '' }}
             <div class="form-group">
                 {{ Form::label('salary_type', __('Payslip Type'), ['class' => 'form-label']) }}
                 <div class="form-check">
-                    {{ Form::radio('salary_type', 'per_month', true, ['class' => 'form-check-input', 'id' => 'per_month']) }}
+                    {{ Form::radio('salary_type', 1, $employee->salary_type == 1, ['class' => 'form-check-input', 'id' => 'per_month']) }}
                     {{ Form::label('per_month', 'Per Month', ['class' => 'form-check-label']) }}
                 </div>
                 
                 <div class="form-check">
-                    {{ Form::radio('salary_type', 'per_week', false, ['class' => 'form-check-input', 'id' => 'per_week']) }}
+                    {{ Form::radio('salary_type', 2, $employee->salary_type == 2, ['class' => 'form-check-input', 'id' => 'per_week']) }}
                     {{ Form::label('per_week', 'Per Week', ['class' => 'form-check-label']) }}
                 </div>
                 
                 <div class="form-check">
-                    {{ Form::radio('salary_type', 'per_hour', false, ['class' => 'form-check-input', 'id' => 'per_hour']) }}
+                    {{ Form::radio('salary_type', 3, $employee->salary_type == 3, ['class' => 'form-check-input', 'id' => 'per_hour']) }}
                     {{ Form::label('per_hour', 'Per Hour', ['class' => 'form-check-label']) }}
                 </div>
             </div>
