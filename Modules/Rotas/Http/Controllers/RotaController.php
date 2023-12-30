@@ -204,19 +204,15 @@ class RotaController extends Controller
                 return $carry + $item['cost'];
             }, 0);
             $increaseOrDecrease = 0;
+            $perClass = ""; 
+            
+            if($totalTargetSale >= $totalLaborCostSum)
+            $perClass = "text-success";
+            else $perClass = "text-danger";
+        
+            $increaseOrDecrease = round(($totalLaborCostSum / $totalTargetSale) * 100);
 
-            $totalTargetSale = 700;
-            $totalLaborCostSum = 4360;
-            
-            $totalTargetSale = 700;
-            $totalLaborCostSum = 4360;
-            
-            
-            $increaseOrDecrease = (($totalTargetSale - $totalLaborCostSum) / $totalLaborCostSum) * 100;
-            $increaseOrDecrease = 100;
-            // dd($increaseOrDecrease);
-
-            return view('rotas::rota.index', compact('increaseOrDecrease', 'totalLaborCostSum', 'totalLaborCosts', 'totalLaborTargetAvg', 'totalLaborTargets', 'totalTargetSales', 'totalTargetSale', 'week_date', 'employees', 'temp_week', 'branch', 'department', 'designation', 'first_location', 'created_by', 'day_off', 'leave_display', 'availability_display'));
+            return view('rotas::rota.index', compact('perClass','increaseOrDecrease', 'totalLaborCostSum', 'totalLaborCosts', 'totalLaborTargetAvg', 'totalLaborTargets', 'totalTargetSales', 'totalTargetSale', 'week_date', 'employees', 'temp_week', 'branch', 'department', 'designation', 'first_location', 'created_by', 'day_off', 'leave_display', 'availability_display'));
         }
     }
 
@@ -600,6 +596,124 @@ class RotaController extends Controller
         }
         $array = array('table' => $thead . '<tbody>' . $tbody . '</tbody><tfoot class="bt2"></tfoot>', 'title' => $week_date1[0] . ' - ' . $week_date1[6], 'week_exp' => $week_exp, 'thead' => $thead2);
         return $array;
+    }
+    public function labor_cost(Request $request)
+    {
+        if (Auth::user()->can('rota manage')) {
+
+            
+            $date_formate = Rota::CompanyDateFormat('d M Y');
+            $week = 0;
+            $start_day = (!empty(company_setting('company_week_start'))) ? company_setting('company_week_start') : 'monday';
+            $week_date = Rota::getWeekArray($date_formate, $week, $start_day);
+
+
+            $week_date['week_start'] = date('Y-m-d', strtotime($week_date[0]));
+            $week_date['week_end'] = date('Y-m-d', strtotime($week_date[6]));
+
+            // Total Sale Target for the week
+            $totalTargetSale = TargetSale::whereDate("date", ">=", $week_date['week_start'])
+                ->whereDate("date", "<=", $week_date['week_end'])->sum('target');
+
+            // Labor cost percentage of the week
+            $totalLaborTargetAvg = intval(LaborTarget::whereDate("date", ">=", $week_date['week_start'])
+                    ->whereDate("date", "<=", $week_date['week_end'])->avg('target'));
+
+            // Step 1: Generate an array of all days in the current week
+            $weekDays = [];
+            $startDate = now()->startOfWeek();
+            for ($i = 0; $i < 7; $i++) {
+                $weekDays[] = $startDate->clone()->addDays($i)->toDateString();
+            }
+
+            $employeess = Employee::where('user_id', Auth::user()->id)->where('workspace', getActiveWorkSpace())->get();
+            {
+                $employeess = Employee::where('workspace', getActiveWorkSpace());
+                if (!empty($request->designation_id)) {
+                    $employeess->where('designation_id', $request->designation_id);
+                }
+                $employeess = $employeess->get();
+            }
+
+            $rotasData = Rota::whereDate("rotas_date", ">=", $week_date['week_start'])
+                ->whereDate("rotas_date", "<=", $week_date['week_end'])
+                ->get();
+
+            $sumHoursByDay = []; // Initialize an array to store total hours for each day
+            $weekDays = [];
+            $totalLoborCosts = [];
+            $startDate = now()->startOfWeek();
+            for ($i = 0; $i < 7; $i++) {
+                $weekDays[] = $startDate->clone()->addDays($i)->toDateString();
+            }
+
+            foreach ($weekDays as $day) {
+                $sumHoursByDay[$day] = 0; // Initialize total hours to 0 for each day
+
+                foreach ($employeess as $employee) {
+                    $employeeId = $employee->id;
+                    $employeeSalary = $this->getNetSalary($employee->id);
+                    $hourlySalary = 0;
+                    $dailyTotalLaborCost = 0;
+
+                    if ($employee->salary_type == 1) {
+                        $weekCustom = 4; // Assuming a month has approximately 4 weeks
+                        $daysCustom = $weekCustom * 7;
+                        $hoursCustom = $daysCustom * 24;
+                        $hourlySalary = $employeeSalary / $hoursCustom;
+                    } elseif ($employee->salary_type == 2) {
+                        $hoursCustom = 7 * 24;
+                        $hourlySalary = $employeeSalary / $hoursCustom;
+                    } elseif ($employee->salary_type == 3) {
+                        $hourlySalary = $employeeSalary;
+                    }
+
+                    foreach ($rotasData as $rota) {
+                        // Check if the rota belongs to the current employee and the desired day of the week
+                        if ($rota->user_id == $employeeId && $rota->rotas_date == $day) {
+                            // Assuming 'start_time' and 'end_time' are in the format HH:mm:ss
+                            $startTime = Carbon::parse($rota->start_time);
+                            $endTime = Carbon::parse($rota->end_time);
+
+                            // Calculate the difference in hours
+                            $hours = $endTime->diffInHours($startTime);
+
+                            // Check if 'break_time' is provided and is a valid time
+                            if ($rota->break_time && strtotime($rota->break_time) !== false) {
+                                // Subtract break time (assuming 'break_time' is in the format HH:mm:ss)
+                                $breakTime = Carbon::parse($rota->break_time)->format('H:i:s');
+                                $hours -= $breakTime;
+                            }
+
+                            // Add the calculated hours to the sum for the current day
+                            $sumHoursByDay[$day] += max(0, $hours); // Ensure a non-negative value
+                        }
+                    }
+
+                    $totalCost = $hourlySalary * $sumHoursByDay[$day];
+                    $dailyTotalLaborCost += $hourlySalary * $sumHoursByDay[$day];
+                }
+
+
+                $totalLaborCosts[] = ['cost' => $dailyTotalLaborCost, 'date' => $day];
+            }
+            $totalLaborCostSum = array_reduce($totalLaborCosts, function ($carry, $item) {
+                return $carry + $item['cost'];
+            }, 0);
+            $increaseOrDecrease = 0;   
+        
+            $increaseOrDecrease = round(($totalLaborCostSum / $totalTargetSale) * 100);
+
+            $perClass = ""; 
+            
+            if($totalTargetSale >= $totalLaborCostSum)
+            $perClass = "text-success";
+            else $perClass = "text-danger";
+        
+
+            $html = view('rotas::rota.labor_cost',compact('perClass','increaseOrDecrease', 'totalLaborCostSum', 'totalLaborCosts'))->render();
+            return response()->json(['html' => $html]);
+        }
     }
 
     public function un_publish_week(Request $request)

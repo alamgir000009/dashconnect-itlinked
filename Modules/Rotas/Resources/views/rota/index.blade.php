@@ -333,7 +333,7 @@
                                                         </td>
                                                     @endforeach
                                                 </tr>
-                                                <tr>
+                                                <tr id="labor-cost-tr">
                                                     <td>
                                                         <div class="d-flex">
                                                             <div class="col-md-6">
@@ -341,7 +341,7 @@
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <div class="d-flex">
-                                                                    <div class="text-success" id="increase-decrease-cost">
+                                                                    <div class="{{ $perClass }}" id="increase-decrease-cost">
                                                                         ({{ $increaseOrDecrease }}%) &nbsp;
                                                                     </div>
                                                                     <span id="total_labor_cost">
@@ -428,6 +428,7 @@
                         if (response.status) {
                             $("#total_target_sale").html(response.totalTargetSale);
                             toastrsCustom(response.message, 'success');
+                            fetchLaborCost();
                         }
                     }
                 });
@@ -836,6 +837,7 @@
                         // loadConfirm();
                         dragdrop();
                         seturl();
+                        fetchLaborCost();
                     }
                 });
             });
@@ -1342,6 +1344,16 @@
                 });
             }
         @endif
+        function fetchLaborCost() {
+            $.ajax({
+                    url: '{{ route('rotas.labor_cost') }}',
+                    method: 'post',
+                    data: {},
+                    success: function(data) {
+                        $('#labor-cost-tr').html(data.html);
+                    }
+                });
+        }
         function seturl() {
             var week = $('.week_add_sub').val();
             var designation_id = $('#designation_id').val();

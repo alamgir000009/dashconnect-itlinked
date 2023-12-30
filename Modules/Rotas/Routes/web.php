@@ -34,6 +34,7 @@ Route::group(['middleware' => 'PlanModuleCheck:Rotas'], function () {
     Route::resource('/employeerole', 'RoleController')->middleware(['auth']);
 
     Route::post('/rota/week_sheet', ['as' => 'rotas.week_sheet', 'uses' => 'RotaController@week_sheet'])->middleware(['auth']);
+    Route::post('/rota/labor_cost', ['as' => 'rotas.labor_cost', 'uses' => 'RotaController@labor_cost'])->middleware(['auth']);
     Route::post('hideavailability', 'RotaController@hideavailability')->name('hideavailability')->middleware(['auth']);
     Route::post('hidedayoff', 'RotaController@hidedayoff')->name('hidedayoff')->middleware(['auth']);
     Route::post('hideleave', 'RotaController@hideleave')->name('hideleave')->middleware(['auth']);
