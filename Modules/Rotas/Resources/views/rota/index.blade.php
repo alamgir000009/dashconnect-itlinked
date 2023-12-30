@@ -15,6 +15,7 @@
             border: 3px solid #16d3e4;
             border-radius: 5px;
         }
+
         .change-labor-target,
         .change-target {
             cursor: pointer !important;
@@ -268,11 +269,7 @@
                                 @endif
                             </tbody>
 
-                            @if (Auth::user()->type == 'company' && !empty($emp))
-                                <tfoot class="bt2">
-                                    {!! \Modules\Rotas\Entities\Rota::getCompanyWeeklyUserSalary(0, $created_by, $emp->designation_id, 0) !!}
-                                </tfoot>
-                            @endif
+                            
                         </table>
                         <hr>
                         <p>
@@ -305,7 +302,8 @@
 
                                                     @foreach ($totalTargetSales as $day)
                                                         <td>
-                                                            <span title="Click to update the sale target" class="change-target" contenteditable
+                                                            <span title="Click to update the sale target"
+                                                                class="change-target" contenteditable
                                                                 id="{{ $day['date'] }}"
                                                                 data-oldvalue="{{ $day['target'] }}">{{ $day['target'] }}</span>
                                                         </td>
@@ -317,7 +315,7 @@
                                                     <td>
                                                         <div class="d-flex">
                                                             <div class="col-md-6">
-                                                                LABOR COST
+                                                                LABOR TARGET
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <span id="total_labor_percentage">
@@ -328,9 +326,34 @@
                                                     </td>
                                                     @foreach ($totalLaborTargets as $day)
                                                         <td>
-                                                            <span title="Click to update the labor target" class="change-labor-target" contenteditable
+                                                            <span title="Click to update the labor target"
+                                                                class="change-labor-target" contenteditable
                                                                 id="{{ $day['date'] }}"
-                                                                data-oldvalue="{{ $day['target'] }}">{{ $day['target']??'' }}</span>%
+                                                                data-oldvalue="{{ $day['target'] }}">{{ $day['target'] ?? '' }}</span>%
+                                                        </td>
+                                                    @endforeach
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex">
+                                                            <div class="col-md-6">
+                                                                LABOR COST
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="d-flex">
+                                                                    <div class="text-success" id="increase-decrease-cost">
+                                                                        ({{ $increaseOrDecrease }}%) &nbsp;
+                                                                    </div>
+                                                                    <span id="total_labor_cost">
+                                                                        {{ currency_format_with_sym($totalLaborCostSum) }}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    @foreach ($totalLaborCosts as $day)
+                                                        <td>
+                                                            <span>{{ $day['cost'] }}</span>
                                                         </td>
                                                     @endforeach
                                                 </tr>
@@ -419,7 +442,7 @@
             var oldTarget = $(this).data('oldvalue');
 
             // Check if the value has changed
-            if (updatedTarget === oldTarget) {
+            if (updatedTarget == oldTarget) {
                 return; // Exit the event handler if the value hasn't changed
             } else if (!date || date.match(/^\d{4}-\d{2}-\d{2}$/) === null) {
                 toastrsCustom('{{ __('Enter a valid date.') }}', 'error');
