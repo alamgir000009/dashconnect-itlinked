@@ -39,6 +39,7 @@ class PermissionTableSeeder extends Seeder
             'rota clear week',
             'rota day off',
             'rota send mail',
+            'rota manage insight',
             'availability manage',
             'availability create',
             'availability edit',

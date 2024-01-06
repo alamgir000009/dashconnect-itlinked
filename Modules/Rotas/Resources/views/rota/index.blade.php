@@ -272,97 +272,101 @@
                             
                         </table>
                         <hr>
-                        <p>
-                            <a class="cursor-pointer ms-4" data-bs-toggle="collapse" href="#comparisonInsights"
-                                aria-expanded="false" aria-controls="comparisonInsights">
-                                {{-- <i class="fa fa-angle-double-down"></i>  --}}
-                                <i class="fa fa-angle-down"></i>
-                                INSIGHTS</a>
-                            <span>...</span>
-                        </p>
-                        <div class="row">
-                            <div class="col">
-                                <div class="collapse multi-collapse" id="comparisonInsights">
-                                    <div class="card card-body">
-                                        <table class="table table-striped">
-                                            <tbody>
-                                                <tr>
-                                                    <td>
-                                                        <div class="d-flex">
-                                                            <div class="col-md-6">
-                                                                SALES TARGET
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <span
-                                                                    id="total_target_sale">{{ currency_format_with_sym($totalTargetSale) }}</span>
-                                                            </div>
-                                                        </div>
-                                                    </td>
 
-
-                                                    @foreach ($totalTargetSales as $day)
+                        @can('rota manage insight')
+                            <p>
+                                <a class="cursor-pointer ms-4" data-bs-toggle="collapse" href="#comparisonInsights"
+                                    aria-expanded="false" aria-controls="comparisonInsights">
+                                    {{-- <i class="fa fa-angle-double-down"></i>  --}}
+                                    <i class="fa fa-angle-down"></i>
+                                    INSIGHTS</a>
+                                <span>...</span>
+                            </p>
+                            <div class="row">
+                                <div class="col">
+                                    <div class="collapse multi-collapse" id="comparisonInsights">
+                                        <div class="card card-body">
+                                            <table class="table table-striped">
+                                                <tbody>
+                                                    <tr>
                                                         <td>
-                                                            <span title="Click to update the sale target"
-                                                                class="change-target" contenteditable
-                                                                id="{{ $day['date'] }}"
-                                                                data-oldvalue="{{ $day['target'] }}">{{ $day['target'] }}</span>
+                                                            <div class="d-flex">
+                                                                <div class="col-md-6">
+                                                                    SALES TARGET
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <span
+                                                                        id="total_target_sale">{{ currency_format_with_sym($totalTargetSale) }}</span>
+                                                                </div>
+                                                            </div>
                                                         </td>
-                                                    @endforeach
 
-                                                </tr>
 
-                                                <tr>
-                                                    <td>
-                                                        <div class="d-flex">
-                                                            <div class="col-md-6">
-                                                                LABOR TARGET
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <span id="total_labor_percentage">
-                                                                    {{ $totalLaborTargetAvg ? $totalLaborTargetAvg . '%' : '' }}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    @foreach ($totalLaborTargets as $day)
+                                                        @foreach ($totalTargetSales as $day)
+                                                            <td>
+                                                                <span title="Click to update the sale target"
+                                                                    class="change-target" contenteditable
+                                                                    id="{{ $day['date'] }}"
+                                                                    data-oldvalue="{{ $day['target'] }}">{{ $day['target'] }}</span>
+                                                            </td>
+                                                        @endforeach
+
+                                                    </tr>
+
+                                                    <tr>
                                                         <td>
-                                                            <span title="Click to update the labor target"
-                                                                class="change-labor-target" contenteditable
-                                                                id="{{ $day['date'] }}"
-                                                                data-oldvalue="{{ $day['target'] }}">{{ $day['target'] ?? '' }}</span>%
-                                                        </td>
-                                                    @endforeach
-                                                </tr>
-                                                <tr id="labor-cost-tr">
-                                                    <td>
-                                                        <div class="d-flex">
-                                                            <div class="col-md-6">
-                                                                LABOR COST
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <div class="d-flex">
-                                                                    <div class="{{ $perClass }}" id="increase-decrease-cost">
-                                                                        ({{ $increaseOrDecrease }}%) &nbsp;
-                                                                    </div>
-                                                                    <span id="total_labor_cost">
-                                                                        {{ currency_format_with_sym($totalLaborCostSum) }}
+                                                            <div class="d-flex">
+                                                                <div class="col-md-6">
+                                                                    LABOR TARGET
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <span id="total_labor_percentage">
+                                                                        {{ $totalLaborTargetAvg ? $totalLaborTargetAvg . '%' : '' }}
                                                                     </span>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    </td>
-                                                    @foreach ($totalLaborCosts as $day)
-                                                        <td>
-                                                            <span>{{ $day['cost'] }}</span>
                                                         </td>
-                                                    @endforeach
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                                        @foreach ($totalLaborTargets as $day)
+                                                            <td>
+                                                                <span title="Click to update the labor target"
+                                                                    class="change-labor-target" contenteditable
+                                                                    id="{{ $day['date'] }}"
+                                                                    data-oldvalue="{{ $day['target'] }}">{{ $day['target'] ?? '' }}</span>%
+                                                            </td>
+                                                        @endforeach
+                                                    </tr>
+                                                    <tr id="labor-cost-tr">
+                                                        <td>
+                                                            <div class="d-flex">
+                                                                <div class="col-md-6">
+                                                                    LABOR COST
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <div class="d-flex">
+                                                                        <div class="{{ $perClass }}" id="increase-decrease-cost">
+                                                                            ({{ $increaseOrDecrease }}%) &nbsp;
+                                                                        </div>
+                                                                        <span id="total_labor_cost">
+                                                                            {{ currency_format_with_sym($totalLaborCostSum) }}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        @foreach ($totalLaborCosts as $day)
+                                                            <td>
+                                                                <span>{{ $day['cost'] }}</span>
+                                                            </td>
+                                                        @endforeach
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        @endCan
+
                     </div>
                 </div>
             </div>
