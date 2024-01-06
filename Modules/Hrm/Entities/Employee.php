@@ -3,13 +3,12 @@
 namespace Modules\Hrm\Entities;
 
 use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use App\Models\WorkSpace;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Rawilk\Settings\Support\Context;
-use Symfony\Component\Mailer\Transport\Dsn;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class Employee extends Model
 {
@@ -45,7 +44,7 @@ class Employee extends Model
 
     protected static function newFactory()
     {
-        return \Modules\Hrm\Database\factories\EmployeeFactory::new();
+        return \Modules\Hrm\Database\factories\EmployeeFactory::new ();
     }
     public function user()
     {
@@ -110,91 +109,109 @@ class Employee extends Model
 
         //allowance
 
-        $allowances      = Allowance::where('employee_id', '=', $this->id)->get();
+        $allowances = Allowance::where('employee_id', '=', $this->id)->get();
         $total_allowance = 0;
         foreach ($allowances as $allowance) {
             if ($allowance->type == 'percentage') {
-                $employee          = Employee::find($allowance->employee_id);
-                $total_allowance  = $allowance->amount * $employee->salary / 100  + $total_allowance;
+                $employee = Employee::find($allowance->employee_id);
+                $total_allowance = $allowance->amount * $employee->salary / 100 + $total_allowance;
             } else {
                 $total_allowance = $allowance->amount + $total_allowance;
             }
         }
 
         //commission
-        $commissions      = Commission::where('employee_id', '=', $this->id)->get();
+        $commissions = Commission::where('employee_id', '=', $this->id)->get();
 
         $total_commission = 0;
         foreach ($commissions as $commission) {
             if ($commission->type == 'percentage') {
-                $employee          = Employee::find($commission->employee_id);
-                $total_commission  = $commission->amount * $employee->salary / 100 + $total_commission;
+                $employee = Employee::find($commission->employee_id);
+                $total_commission = $commission->amount * $employee->salary / 100 + $total_commission;
             } else {
                 $total_commission = $commission->amount + $total_commission;
             }
         }
 
-
-
         //Loan
-        $loans      = Loan::where('employee_id', '=', $this->id)->get();
+        $loans = Loan::where('employee_id', '=', $this->id)->get();
         $total_loan = 0;
         foreach ($loans as $loan) {
             if ($loan->type == 'percentage') {
                 $employee = Employee::find($loan->employee_id);
-                $total_loan  = $loan->amount * $employee->salary / 100   + $total_loan;
+                $total_loan = $loan->amount * $employee->salary / 100 + $total_loan;
             } else {
                 $total_loan = $loan->amount + $total_loan;
             }
         }
 
         //Saturation Deduction
-        $saturation_deductions      = SaturationDeduction::where('employee_id', '=', $this->id)->get();
+        $saturation_deductions = SaturationDeduction::where('employee_id', '=', $this->id)->get();
         $total_saturation_deduction = 0;
         foreach ($saturation_deductions as $saturation_deduction) {
+            $employee = Employee::find($saturation_deduction->employee_id);
+            $employeeSalary = $employee->salary;
+
+            foreach ($saturation_deduction->deduction_ranges as $range) {
+
+                $deductionAmount = $range['deduction_amount'];
+
+                if ($employeeSalary >= $range['range_start'] && $employeeSalary <= $range['range_end']) {
+                    // Employee's salary falls within the current range
+                    if ($saturation_deduction->type == 'percentage') {
+                        // If the saturation deduction type is 'percentage'
+                        $total_saturation_deduction += $deductionAmount * $employeeSalary / 100;
+                    } else {
+                        // If the saturation deduction type is not 'percentage'
+                        $total_saturation_deduction += $deductionAmount;
+                    }
+
+                    // Break the loop as we found the applicable range
+                    break;
+                }
+            }
+
             if ($saturation_deduction->type == 'percentage') {
-                $employee          = Employee::find($saturation_deduction->employee_id);
-                $total_saturation_deduction  = $saturation_deduction->amount * $employee->salary / 100 + $total_saturation_deduction;
+                $total_saturation_deduction = $saturation_deduction->amount * $employee->salary / 100 + $total_saturation_deduction;
             } else {
                 $total_saturation_deduction = $saturation_deduction->amount + $total_saturation_deduction;
             }
         }
 
         //OtherPayment
-        $other_payments      = OtherPayment::where('employee_id', '=', $this->id)->get();
+        $other_payments = OtherPayment::where('employee_id', '=', $this->id)->get();
         $total_other_payment = 0;
         foreach ($other_payments as $other_payment) {
             if ($other_payment->type == 'percentage') {
-                $employee          = Employee::find($other_payment->employee_id);
-                $total_other_payment  = $other_payment->amount * $employee->salary / 100  + $total_other_payment;
+                $employee = Employee::find($other_payment->employee_id);
+                $total_other_payment = $other_payment->amount * $employee->salary / 100 + $total_other_payment;
             } else {
                 $total_other_payment = $other_payment->amount + $total_other_payment;
             }
         }
 
         //Overtime
-        $over_times      = Overtime::where('employee_id', '=', $this->id)->get();
+        $over_times = Overtime::where('employee_id', '=', $this->id)->get();
         $total_over_time = 0;
         foreach ($over_times as $over_time) {
-            $total_work      = $over_time->number_of_days * $over_time->hours;
-            $amount          = $total_work * $over_time->rate;
+            $total_work = $over_time->number_of_days * $over_time->hours;
+            $amount = $total_work * $over_time->rate;
             $total_over_time = $amount + $total_over_time;
         }
-
 
         //Net Salary Calculate
         $advance_salary = $total_allowance + $total_commission - $total_loan - $total_saturation_deduction + $total_other_payment + $total_over_time;
 
-        $employee       = Employee::where('id', '=', $this->id)->first();
+        $employee = Employee::where('id', '=', $this->id)->first();
 
-        $net_salary     = (!empty($employee->salary) ? $employee->salary : 0) + $advance_salary;
+        $net_salary = (!empty($employee->salary) ? $employee->salary : 0) + $advance_salary;
 
         return $net_salary;
     }
     public static function allowance($id)
     {
         //allowance
-        $allowances      = Allowance::where('employee_id', '=', $id)->get();
+        $allowances = Allowance::where('employee_id', '=', $id)->get();
         $total_allowance = 0;
         foreach ($allowances as $allowance) {
             $total_allowance = $allowance->amount + $total_allowance;
@@ -208,7 +225,7 @@ class Employee extends Model
     public static function commission($id)
     {
         //commission
-        $commissions      = Commission::where('employee_id', '=', $id)->get();
+        $commissions = Commission::where('employee_id', '=', $id)->get();
         $total_commission = 0;
 
         foreach ($commissions as $commission) {
@@ -222,7 +239,7 @@ class Employee extends Model
     public static function loan($id)
     {
         //Loan
-        $loans      = Loan::where('employee_id', '=', $id)->get();
+        $loans = Loan::where('employee_id', '=', $id)->get();
         $total_loan = 0;
         foreach ($loans as $loan) {
             $total_loan = $loan->amount + $total_loan;
@@ -235,7 +252,7 @@ class Employee extends Model
     public static function saturation_deduction($id)
     {
         //Saturation Deduction
-        $saturation_deductions      = SaturationDeduction::where('employee_id', '=', $id)->get();
+        $saturation_deductions = SaturationDeduction::where('employee_id', '=', $id)->get();
         $total_saturation_deduction = 0;
         foreach ($saturation_deductions as $saturation_deduction) {
             $total_saturation_deduction = $saturation_deduction->amount + $total_saturation_deduction;
@@ -248,7 +265,7 @@ class Employee extends Model
     public static function other_payment($id)
     {
         //OtherPayment
-        $other_payments      = OtherPayment::where('employee_id', '=', $id)->get();
+        $other_payments = OtherPayment::where('employee_id', '=', $id)->get();
         $total_other_payment = 0;
         foreach ($other_payments as $other_payment) {
             $total_other_payment = $other_payment->amount + $total_other_payment;
@@ -261,11 +278,11 @@ class Employee extends Model
     public static function overtime($id)
     {
         //Overtime
-        $over_times      = Overtime::where('employee_id', '=', $id)->get();
+        $over_times = Overtime::where('employee_id', '=', $id)->get();
         $total_over_time = 0;
         foreach ($over_times as $over_time) {
-            $total_work      = $over_time->number_of_days * $over_time->hours;
-            $amount          = $total_work * $over_time->rate;
+            $total_work = $over_time->number_of_days * $over_time->hours;
+            $amount = $total_work * $over_time->rate;
             $total_over_time = $amount + $total_over_time;
         }
         $over_time_json = json_encode($over_times);
@@ -284,85 +301,77 @@ class Employee extends Model
         $totaldeduction = 0;
         // allowance
 
-       if(!empty($payslip_data))
-       {
-        $allowances = json_decode($payslip_data->allowance);
-        foreach ($allowances as $allowance) {
-            if ($allowance->type == 'percentage') {
-                $empall  = $allowance->amount * $payslip_data->basic_salary / 100;
-            } else {
-                $empall = $allowance->amount;
+        if (!empty($payslip_data)) {
+            $allowances = json_decode($payslip_data->allowance);
+            foreach ($allowances as $allowance) {
+                if ($allowance->type == 'percentage') {
+                    $empall = $allowance->amount * $payslip_data->basic_salary / 100;
+                } else {
+                    $empall = $allowance->amount;
+                }
+                $totalAllowance += $empall;
             }
-            $totalAllowance += $empall;
-        }
-        // commission
+            // commission
 
-        $commissions = json_decode($payslip_data->commission);
-        foreach ($commissions as $commission) {
+            $commissions = json_decode($payslip_data->commission);
+            foreach ($commissions as $commission) {
 
-            if ($commission->type == 'percentage') {
-                $empcom  = $commission->amount * $payslip_data->basic_salary / 100;
-            } else {
-                $empcom = $commission->amount;
+                if ($commission->type == 'percentage') {
+                    $empcom = $commission->amount * $payslip_data->basic_salary / 100;
+                } else {
+                    $empcom = $commission->amount;
+                }
+                $totalCommission += $empcom;
             }
-            $totalCommission += $empcom;
-        }
 
-        // otherpayment
+            // otherpayment
 
-
-        $otherpayments = json_decode($payslip_data->other_payment);
-        foreach ($otherpayments as $otherpayment) {
-            if ($otherpayment->type == 'percentage') {
-                $empotherpay  = $otherpayment->amount * $payslip_data->basic_salary / 100;
-            } else {
-                $empotherpay = $otherpayment->amount;
+            $otherpayments = json_decode($payslip_data->other_payment);
+            foreach ($otherpayments as $otherpayment) {
+                if ($otherpayment->type == 'percentage') {
+                    $empotherpay = $otherpayment->amount * $payslip_data->basic_salary / 100;
+                } else {
+                    $empotherpay = $otherpayment->amount;
+                }
+                $totalotherpayment += $empotherpay;
             }
-            $totalotherpayment += $empotherpay;
-        }
-        //overtime
+            //overtime
 
-        $overtimes = json_decode($payslip_data->overtime);
-        foreach ($overtimes as $overtime) {
-            $OverTime = $overtime->number_of_days * $overtime->hours * $overtime->rate;
-            $ot += $OverTime;
-        }
-
-        // loan
-
-
-        $loans = json_decode($payslip_data->loan);
-
-        foreach ($loans as $loan)
-        {
-            if ($loan->type == 'percentage') {
-                $emploan  = $loan->amount * $payslip_data->basic_salary / 100;
-            } else {
-                $emploan = $loan->amount;
+            $overtimes = json_decode($payslip_data->overtime);
+            foreach ($overtimes as $overtime) {
+                $OverTime = $overtime->number_of_days * $overtime->hours * $overtime->rate;
+                $ot += $OverTime;
             }
-            $totalloan += $emploan;
-        }
 
-        // saturation_deduction
+            // loan
 
-        $deductions = json_decode($payslip_data->saturation_deduction);
-        foreach ($deductions as $deduction)
-        {
-            if ($deduction->type == 'percentage')
-            {
-                $empdeduction  = $deduction->amount * $payslip_data->basic_salary / 100;
+            $loans = json_decode($payslip_data->loan);
+
+            foreach ($loans as $loan) {
+                if ($loan->type == 'percentage') {
+                    $emploan = $loan->amount * $payslip_data->basic_salary / 100;
+                } else {
+                    $emploan = $loan->amount;
+                }
+                $totalloan += $emploan;
             }
-            else
-            {
-                $empdeduction = $deduction->amount;
+
+            // saturation_deduction
+
+            $deductions = json_decode($payslip_data->saturation_deduction);
+            foreach ($deductions as $deduction) {
+                if ($deduction->type == 'percentage') {
+                    $empdeduction = $deduction->amount * $payslip_data->basic_salary / 100;
+                } else {
+                    $empdeduction = $deduction->amount;
+                }
+                $totaldeduction += $empdeduction;
             }
-            $totaldeduction += $empdeduction;
+
         }
 
-       }
-
-        $payslip['payslip']        = $payslip_data;
-        $payslip['totalEarning']   = $totalAllowance + $totalCommission + $totalotherpayment + $ot;
+        $payslip['payslip'] = $payslip_data;
+        $payslip['totalEarning'] = $totalAllowance + $totalCommission + $totalotherpayment + $ot;
         $payslip['totalDeduction'] = $totalloan + $totaldeduction;
 
         $payslip['allowance'] = $totalAllowance;
@@ -402,7 +411,7 @@ class Employee extends Model
             "company_end_time" => "18:00",
         ];
 
-        if ($company_id == Null) {
+        if ($company_id == null) {
             $companys = User::where('type', 'company')->get();
             foreach ($companys as $company) {
                 $WorkSpaces = WorkSpace::where('created_by', $company->id)->get();
@@ -412,12 +421,12 @@ class Employee extends Model
                     NOC::defaultNocCertificate($company->id, $WorkSpace->id);
 
                     $userContext = new Context(['user_id' => $company->id, 'workspace_id' => !empty($WorkSpace->id) ? $WorkSpace->id : 0]);
-                    foreach ($company_setting as $key =>  $p) {
+                    foreach ($company_setting as $key => $p) {
                         \Settings::context($userContext)->set($key, $p);
                     }
                 }
             }
-        } elseif ($workspace_id == Null) {
+        } elseif ($workspace_id == null) {
             $company = User::where('type', 'company')->where('id', $company_id)->first();
             $WorkSpaces = WorkSpace::where('created_by', $company->id)->get();
             foreach ($WorkSpaces as $WorkSpace) {
@@ -425,7 +434,7 @@ class Employee extends Model
                 ExperienceCertificate::defaultExpCertificat($company->id, $WorkSpace->id);
                 NOC::defaultNocCertificate($company->id, $WorkSpace->id);
                 $userContext = new Context(['user_id' => $company->id, 'workspace_id' => !empty($WorkSpace->id) ? $WorkSpace->id : 0]);
-                foreach ($company_setting as $key =>  $p) {
+                foreach ($company_setting as $key => $p) {
                     \Settings::context($userContext)->set($key, $p);
                 }
             }
@@ -433,7 +442,7 @@ class Employee extends Model
             $company = User::where('type', 'company')->where('id', $company_id)->first();
             $WorkSpace = WorkSpace::where('created_by', $company->id)->where('id', $workspace_id)->first();
             $userContext = new Context(['user_id' => $company->id, 'workspace_id' => !empty($WorkSpace->id) ? $WorkSpace->id : 0]);
-            foreach ($company_setting as $key =>  $p) {
+            foreach ($company_setting as $key => $p) {
                 JoiningLetter::defaultJoiningLetter($company->id, $WorkSpace->id);
                 ExperienceCertificate::defaultExpCertificat($company->id, $WorkSpace->id);
                 NOC::defaultNocCertificate($company->id, $WorkSpace->id);
@@ -483,11 +492,9 @@ class Employee extends Model
             'employee manage',
             'employee show',
 
-
-
         ];
 
-        if ($role_id == Null) {
+        if ($role_id == null) {
 
             // staff
             $roles_v = Role::where('name', 'staff')->get();
@@ -508,21 +515,17 @@ class Employee extends Model
             }
         }
     }
-    public static function PayrollCalculation($EmpID = null,$months = null,$type = null)
+    public static function PayrollCalculation($EmpID = null, $months = null, $type = null)
     {
-        if(!empty($EmpID) && !empty($type) && count($months) > 0)
-        {
+        if (!empty($EmpID) && !empty($type) && count($months) > 0) {
             $data = [];
-            foreach ($months as $key => $month)
-            {
-                $payslip_data = Employee::employeePayslipDetail($EmpID,$month);
+            foreach ($months as $key => $month) {
+                $payslip_data = Employee::employeePayslipDetail($EmpID, $month);
                 $data[] = $payslip_data[$type];
             }
             $data[] = array_sum($data);
             return $data;
-        }
-        else
-        {
+        } else {
             return [];
         }
     }

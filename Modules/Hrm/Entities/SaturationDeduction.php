@@ -17,6 +17,7 @@ class SaturationDeduction extends Model
         'amount',
         'workspace',
         'created_by',
+        'deduction_ranges'
     ];
 
     public static $saturationDeductiontype = [
@@ -32,4 +33,14 @@ class SaturationDeduction extends Model
     {
         return $this->hasOne(DeductionOption::class,'id','deduction_option')->first();
     }
+
+    public function getDeductionRangesAttribute($value)
+    {
+        return json_decode($value, true);
+    }
+
+    public function setDeductionRangesAttribute($value)
+    {
+        $this->attributes['deduction_ranges'] = json_encode($value);
+    } 
 }

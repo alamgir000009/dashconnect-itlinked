@@ -323,7 +323,7 @@
 
             <!-- Saturation -->
             @can('saturation deduction manage')
-                <div class="col-md-6">
+                <div class="col-md-12">
                     <div class="card set-card">
                         <div class="card-header">
                             <div class="row">
@@ -333,7 +333,7 @@
                                 @can('saturation deduction create')
                                     <div class="col text-end">
                                         <a  data-url="{{ route('saturationdeductions.create', $employee->id) }}"
-                                            data-ajax-popup="true" data-size="md" data-title="{{ __('Create Saturation Deduction') }}"
+                                            data-ajax-popup="true" data-size="lg" data-title="{{ __('Create Saturation Deduction') }}"
                                             data-bs-toggle="tooltip" title="" class="btn btn-sm btn-primary"
                                             data-bs-original-title="{{ __('Create') }}">
                                             <i class="ti ti-plus"></i>
@@ -351,7 +351,8 @@
                                             <th>{{ __('Deduction Option') }}</th>
                                             <th>{{ __('Title') }}</th>
                                             <th>{{ __('Type') }}</th>
-                                            <th>{{ __('Amount') }}</th>
+                                            {{-- <th>{{ __('Amount') }}</th> --}}
+                                            <th>{{ __('Threshold') }}</th>
                                             @if (Gate::check('saturation deduction edit') || Gate::check('saturation deduction delete'))
                                                 <th>{{ __('Action') }}</th>
                                             @endif
@@ -359,18 +360,63 @@
                                     </thead>
                                     <tbody>
                                         @foreach ($saturationdeductions as $saturationdeduction)
+                                        @php $deductionRanges = $saturationdeduction->deduction_ranges @endphp
                                             <tr>
                                                 <td>{{ !empty( Modules\Hrm\Entities\Employee::GetEmployeeByEmp($saturationdeduction->employee_id)) ? Modules\Hrm\Entities\Employee::GetEmployeeByEmp($saturationdeduction->employee_id)->name : '' }}</td>
                                                 <td>{{ !empty($saturationdeduction->deduction_option()) ? $saturationdeduction->deduction_option()->name : '' }}</td>
                                                 <td>{{ $saturationdeduction->title }}</td>
                                                 <td>{{ ucfirst($saturationdeduction->type) }}</td>
                                                 @if ($saturationdeduction->type == 'fixed')
-                                                    <td>{{ currency_format_with_sym($saturationdeduction->amount) }}
+                                                    {{-- <td>{{ currency_format_with_sym($saturationdeduction->amount) }}
+                                                    </td> --}}
+                                                    <td>
+                                                        <table>
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Start Range</th>
+                                                                    <th>End Range</th>
+                                                                    <th>Deduction</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @foreach ($deductionRanges as $range)
+                                                                    <tr>
+                                                                        <td>{{ $range['range_start'] }}</td>
+                                                                        <td>{{ $range['range_end'] }}</td>
+                                                                        <td>{{ $range['deduction_amount'] }}</td>
+                                                                    </tr>
+                                                                @endforeach
+                                                            </tbody>
+                                                        </table>
                                                     </td>
                                                 @else
-                                                    <td>{{ $saturationdeduction->amount }}%
+                                                    {{-- <td>{{ $saturationdeduction->amount }}%
                                                         ({{ currency_format_with_sym($saturationdeduction->tota_allow) }})
+                                                    </td> --}}
+
+
+                                                    <td>
+                                                        <table>
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Start Range</th>
+                                                                    <th>End Range</th>
+                                                                    <th>Deduction</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @foreach ($deductionRanges as $range)
+                                                                    <tr>
+                                                                        <td>{{ $range['range_start'] }}</td>
+                                                                        <td>{{ $range['range_end'] }}</td>
+                                                                        <td>{{ $range['deduction_amount'] }}</td>
+                                                                    </tr>
+                                                                @endforeach
+                                                            </tbody>
+                                                        </table>
                                                     </td>
+
+
                                                 @endif
                                             @if (Gate::check('saturation deduction edit') || Gate::check('saturation deduction delete'))
                                                 <td class="Action">
@@ -379,7 +425,7 @@
                                                             <div class="action-btn bg-info ms-2">
                                                                 <a  class="mx-3 btn btn-sm  align-items-center"
                                                                     data-url="{{  URL::to('saturationdeduction/' . $saturationdeduction->id . '/edit')  }}"
-                                                                    data-ajax-popup="true" data-size="md"
+                                                                    data-ajax-popup="true" data-size="lg"
                                                                     data-bs-toggle="tooltip" title=""
                                                                     data-title="{{ __('Edit Saturation Deduction') }}"
                                                                     data-bs-original-title="{{ __('Edit') }}">

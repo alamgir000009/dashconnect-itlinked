@@ -21,7 +21,7 @@ return new class extends Migration
                 $table->integer('deduction_option');
                 $table->string('title');
                 $table->string('type')->nullable();
-                $table->integer('amount');
+                $table->integer('amount')->nullable();
                 $table->integer('workspace')->nullable();
                 $table->integer('created_by');
                 $table->timestamps();

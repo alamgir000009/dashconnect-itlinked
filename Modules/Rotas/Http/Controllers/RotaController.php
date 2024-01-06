@@ -264,12 +264,27 @@ class RotaController extends Controller
         $saturation_deductions = SaturationDeduction::where('employee_id', '=', $employeeCustomId)->get();
         $total_saturation_deduction = 0;
         foreach ($saturation_deductions as $saturation_deduction) {
-            if ($saturation_deduction->type == 'percentage') {
-                $employee = Employee::find($saturation_deduction->employee_id);
-                $total_saturation_deduction = $saturation_deduction->amount * $employee->salary / 100 + $total_saturation_deduction;
-            } else {
-                $total_saturation_deduction = $saturation_deduction->amount + $total_saturation_deduction;
+            $employee = Employee::find($saturation_deduction->employee_id);
+            $employeeSalary = $employee->salary;
+
+            foreach ($saturation_deduction->deduction_ranges as $range) {
+                $deductionAmount = $range['deduction_amount'];
+        
+                if ($employeeSalary >= $range['range_start'] && $employeeSalary <= $range['range_end']) {
+                    // Employee's salary falls within the current range
+                    if ($saturation_deduction->type == 'percentage') {
+                        // If the saturation deduction type is 'percentage'
+                        $total_saturation_deduction += $deductionAmount * $employeeSalary / 100;
+                    } else {
+                        // If the saturation deduction type is not 'percentage'
+                        $total_saturation_deduction += $deductionAmount;
+                    }
+        
+                    // Break the loop as we found the applicable range
+                    break;
+                }
             }
+
         }
 
         //OtherPayment

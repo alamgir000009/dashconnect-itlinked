@@ -21,16 +21,13 @@ class SaturationDeductionController extends Controller
      */
     public function saturationdeductionCreate($id)
     {
-        if(Auth::user()->can('saturation deduction create'))
-        {
+        if (Auth::user()->can('saturation deduction create')) {
             $employee = Employee::find($id);
-            $deduction_options = DeductionOption::where('workspace',getActiveWorkSpace())->get()->pluck('name', 'id');
+            $deduction_options = DeductionOption::where('workspace', getActiveWorkSpace())->get()->pluck('name', 'id');
 
-            $saturationdeduc =SaturationDeduction::$saturationDeductiontype;
-            return view('hrm::saturationdeduction.create', compact('employee', 'deduction_options','saturationdeduc'));
-        }
-        else
-        {
+            $saturationdeduc = SaturationDeduction::$saturationDeductiontype;
+            return view('hrm::saturationdeduction.create', compact('employee', 'deduction_options', 'saturationdeduc'));
+        } else {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
     }
@@ -51,40 +48,89 @@ class SaturationDeductionController extends Controller
      */
     public function store(Request $request)
     {
-        if(Auth::user()->can('saturation deduction create'))
-        {
-            $validator = \Validator::make(
-                $request->all(), [
-                                   'employee_id' => 'required',
-                                   'title' => 'required',
-                                   'deduction_option' => 'required',
-                                   'type' => 'required',
-                                   'amount' => 'required',
-                               ]
-            );
-            if($validator->fails())
-            {
-                $messages = $validator->getMessageBag();
+        if (Auth::user()->can('saturation deduction create')) {
+            $validator = \Validator::make($request->all(), [
+                'employee_id' => 'required',
+                'title' => 'required',
+                'deduction_option' => 'required',
+                'type' => 'required',
+                'amount' => 'nullable',
+            ]);
 
+            if ($validator->fails()) {
+                $messages = $validator->getMessageBag();
                 return redirect()->back()->with('error', $messages->first());
             }
 
-            $saturationdeduction                   = new SaturationDeduction;
-            $saturationdeduction->employee_id      = $request->employee_id;
+            $ranges = [
+                'range_start' => $request->input('range_start'),
+                'range_end' => $request->input('range_end'),
+                'deduction_amount' => $request->input('deduction_amount'),
+            ];
+
+            $deductions = [];
+
+            foreach ($ranges['range_start'] as $index => $value) {
+
+                $deductions[] = [
+                    "range_start" => $ranges['range_start'][$index],
+                    "range_end" => $ranges['range_end'][$index],
+                    "deduction_amount" => $ranges['deduction_amount'][$index],
+                ];
+            }
+
+            foreach ($deductions as $index => $deduction) {
+                // Validate each item individually
+                $itemValidator = \Validator::make($deduction, [
+                    'range_start' => [
+                        'required',
+                        'numeric',
+                        function ($attribute, $value, $fail) use ($deductions, $index) {
+                            // Check uniqueness and conflicts within the $deductions array
+                            foreach ($deductions as $key => $otherDeduction) {
+                                if ($key != $index && $value >= $otherDeduction['range_start'] && $value <= $otherDeduction['range_end']) {
+                                    $fail("Failed! The $attribute conflicts with an existing range.");
+                                }
+                            }
+                        },
+                    ],
+                    'range_end' => [
+                        'required',
+                        'numeric',
+                        function ($attribute, $value, $fail) use ($deductions, $index) {
+                            // Check uniqueness and conflicts within the $deductions array
+                            foreach ($deductions as $key => $otherDeduction) {
+                                if ($key != $index && $value >= $otherDeduction['range_start'] && $value <= $otherDeduction['range_end']) {
+                                    $fail("Failed! The $attribute conflicts with an existing range.");
+                                }
+                            }
+                        },
+                        'gt:range_start',
+                    ],
+                    'deduction_amount' => 'required|numeric',
+                ]);
+
+                if ($itemValidator->fails()) {
+                    $messages = $itemValidator->getMessageBag();
+                    return redirect()->back()->with('error', $messages->first());
+                }
+            }
+
+            $saturationdeduction = new SaturationDeduction;
+            $saturationdeduction->employee_id = $request->employee_id;
             $saturationdeduction->deduction_option = $request->deduction_option;
-            $saturationdeduction->title            = $request->title;
-            $saturationdeduction->type             = $request->type;
-            $saturationdeduction->amount           = $request->amount;
-            $saturationdeduction->workspace        = getActiveWorkSpace();
-            $saturationdeduction->created_by       = creatorId();
+            $saturationdeduction->title = $request->title;
+            $saturationdeduction->type = $request->type;
+            $saturationdeduction->amount = $request->amount;
+            $saturationdeduction->deduction_ranges = $deductions;
+            $saturationdeduction->workspace = getActiveWorkSpace();
+            $saturationdeduction->created_by = creatorId();
             $saturationdeduction->save();
 
             event(new CreateSaturationDeduction($request, $saturationdeduction));
 
             return redirect()->back()->with('success', __('SaturationDeduction  successfully created.'));
-        }
-        else
-        {
+        } else {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
     }
@@ -107,24 +153,18 @@ class SaturationDeductionController extends Controller
      */
     public function edit(SaturationDeduction $saturationdeduction)
     {
-        if(Auth::user()->can('saturation deduction edit'))
-        {
-            if($saturationdeduction->created_by == creatorId() && $saturationdeduction->workspace == getActiveWorkSpace())
-            {
-                $deduction_options = DeductionOption::where('workspace',getActiveWorkSpace())->get()->pluck('name', 'id');
+        if (Auth::user()->can('saturation deduction edit')) {
+            if ($saturationdeduction->created_by == creatorId() && $saturationdeduction->workspace == getActiveWorkSpace()) {
+                $deduction_options = DeductionOption::where('workspace', getActiveWorkSpace())->get()->pluck('name', 'id');
 
-                $saturationdeduc =SaturationDeduction::$saturationDeductiontype;
+                $saturationdeduc = SaturationDeduction::$saturationDeductiontype;
 
-                return view('hrm::saturationdeduction.edit', compact('saturationdeduction', 'deduction_options','saturationdeduc'));
-            }
-            else
-            {
+                return view('hrm::saturationdeduction.edit', compact('saturationdeduction', 'deduction_options', 'saturationdeduc'));
+            } else {
 
                 return response()->json(['error' => __('Permission denied.')], 401);
             }
-        }
-        else
-        {
+        } else {
             return response()->json(['error' => __('Permission denied.')], 401);
         }
     }
@@ -137,42 +177,90 @@ class SaturationDeductionController extends Controller
      */
     public function update(Request $request, SaturationDeduction $saturationdeduction)
     {
-        if(Auth::user()->can('saturation deduction edit'))
-        {
-            if($saturationdeduction->created_by == creatorId() && $saturationdeduction->workspace == getActiveWorkSpace())
-            {
-                $validator = \Validator::make(
-                    $request->all(), [
-                                       'deduction_option' => 'required',
-                                       'title' => 'required',
-                                       'type' => 'required',
-                                       'amount' => 'required',
-                                   ]
-                );
-                if($validator->fails())
-                {
-                    $messages = $validator->getMessageBag();
+        if (Auth::user()->can('saturation deduction edit')) {
+            if ($saturationdeduction->created_by == creatorId() && $saturationdeduction->workspace == getActiveWorkSpace()) {
+                $validator = \Validator::make($request->all(), [
+                    // 'employee_id' => 'required',
+                    'title' => 'required',
+                    'deduction_option' => 'required',
+                    'type' => 'required',
+                    'amount' => 'nullable',
+                ]);
 
+                
+                if ($validator->fails()) {
+                    $messages = $validator->getMessageBag();
                     return redirect()->back()->with('error', $messages->first());
                 }
 
+                $ranges = [
+                    'range_start' => $request->input('range_start'),
+                    'range_end' => $request->input('range_end'),
+                    'deduction_amount' => $request->input('deduction_amount'),
+                ];
+
+                $deductions = [];
+
+                foreach ($ranges['range_start'] as $index => $value) {
+
+                    $deductions[] = [
+                        "range_start" => $ranges['range_start'][$index],
+                        "range_end" => $ranges['range_end'][$index],
+                        "deduction_amount" => $ranges['deduction_amount'][$index],
+                    ];
+                }
+
+                foreach ($deductions as $index => $deduction) {
+                    // Validate each item individually
+                    $itemValidator = \Validator::make($deduction, [
+                        'range_start' => [
+                            'required',
+                            'numeric',
+                            function ($attribute, $value, $fail) use ($deductions, $index) {
+                                // Check uniqueness and conflicts within the $deductions array
+                                foreach ($deductions as $key => $otherDeduction) {
+                                    if ($key != $index && $value >= $otherDeduction['range_start'] && $value <= $otherDeduction['range_end']) {
+                                        $fail("Failed! The $attribute conflicts with an existing range.");
+                                    }
+                                }
+                            },
+                        ],
+                        'range_end' => [
+                            'required',
+                            'numeric',
+                            function ($attribute, $value, $fail) use ($deductions, $index) {
+                                // Check uniqueness and conflicts within the $deductions array
+                                foreach ($deductions as $key => $otherDeduction) {
+                                    if ($key != $index && $value >= $otherDeduction['range_start'] && $value <= $otherDeduction['range_end']) {
+                                        $fail("Failed! The $attribute conflicts with an existing range.");
+                                    }
+                                }
+                            },
+                            'gt:range_start',
+                        ],
+                        'deduction_amount' => 'required|numeric',
+                    ]);
+
+                    if ($itemValidator->fails()) {
+                        $messages = $itemValidator->getMessageBag();
+                        return redirect()->back()->with('error', $messages->first());
+                    }
+                }
+
                 $saturationdeduction->deduction_option = $request->deduction_option;
-                $saturationdeduction->title            = $request->title;
-                $saturationdeduction->type             = $request->type;
-                $saturationdeduction->amount           = $request->amount;
+                $saturationdeduction->title = $request->title;
+                $saturationdeduction->type = $request->type;
+                $saturationdeduction->amount = $request->amount;
+                $saturationdeduction->deduction_ranges = $deductions;
                 $saturationdeduction->save();
 
                 event(new UpdateSaturationDeduction($request, $saturationdeduction));
 
                 return redirect()->back()->with('success', __('SaturationDeduction successfully updated.'));
-            }
-            else
-            {
+            } else {
                 return redirect()->back()->with('error', __('Permission denied.'));
             }
-        }
-        else
-        {
+        } else {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
     }
@@ -184,23 +272,17 @@ class SaturationDeductionController extends Controller
      */
     public function destroy(SaturationDeduction $saturationdeduction)
     {
-        if(Auth::user()->can('saturation deduction delete'))
-        {
-            if($saturationdeduction->created_by == creatorId() && $saturationdeduction->workspace == getActiveWorkSpace())
-            {
+        if (Auth::user()->can('saturation deduction delete')) {
+            if ($saturationdeduction->created_by == creatorId() && $saturationdeduction->workspace == getActiveWorkSpace()) {
                 event(new DestroySaturationDeduction($saturationdeduction));
 
                 $saturationdeduction->delete();
 
                 return redirect()->back()->with('success', __('SaturationDeduction successfully deleted.'));
-            }
-            else
-            {
+            } else {
                 return redirect()->back()->with('error', __('Permission denied.'));
             }
-        }
-        else
-        {
+        } else {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
     }
