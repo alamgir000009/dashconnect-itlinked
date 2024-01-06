@@ -31,6 +31,10 @@ require __DIR__.'/auth.php';
 //     return "2FA middleware work!";
 // })->middleware(['auth', '2fa']);
 
+    Route::get('do-something', function(){
+        Artisan::call('migrate');
+    });
+
     Route::get('/register/{lang?}', 'Auth\RegisteredUserController@create')->name('register');
     Route::get('/login/{lang?}', 'Auth\AuthenticatedSessionController@create')->name('login');
     Route::get('/forgot-password/{lang?}', 'Auth\PasswordResetLinkController@create')->name('password.request');
