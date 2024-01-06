@@ -210,7 +210,10 @@ class RotaController extends Controller
             $perClass = "text-success";
             else $perClass = "text-danger";
         
-            $increaseOrDecrease = round(($totalLaborCostSum / $totalTargetSale) * 100);
+            
+            if ($totalTargetSale != 0) {
+                $increaseOrDecrease = round(($totalLaborCostSum / $totalTargetSale) * 100);
+            }
 
             return view('rotas::rota.index', compact('perClass','increaseOrDecrease', 'totalLaborCostSum', 'totalLaborCosts', 'totalLaborTargetAvg', 'totalLaborTargets', 'totalTargetSales', 'totalTargetSale', 'week_date', 'employees', 'temp_week', 'branch', 'department', 'designation', 'first_location', 'created_by', 'day_off', 'leave_display', 'availability_display'));
         }
@@ -701,8 +704,11 @@ class RotaController extends Controller
                 return $carry + $item['cost'];
             }, 0);
             $increaseOrDecrease = 0;   
-        
-            $increaseOrDecrease = round(($totalLaborCostSum / $totalTargetSale) * 100);
+
+            
+            if ($totalTargetSale != 0) {
+                $increaseOrDecrease = round(($totalLaborCostSum / $totalTargetSale) * 100);
+            }
 
             $perClass = ""; 
             
